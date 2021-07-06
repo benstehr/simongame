@@ -1,26 +1,83 @@
-let gamePattern = [];
-
 let buttonColours = ["red", "blue", "green", "yellow"];
 
-//function produces number from 0 to 3
-function nextSequence() {
-	let randomNumber = Math.floor(Math.random() * 4);
-	return randomNumber;
+let gamePattern = [];
+let userClickedPattern = [];
+
+let level = 0;
+let started = false;
+
+document.addEventListener("keydown", function () {
+	if (!started) {
+		setTimeout(function () {
+			nextSequence();
+		}, 200);
+		started = true;
+	}
+});
+
+let buttons = document.getElementsByClassName("btn");
+
+let buttonCount = buttons.length;
+
+for (i = 0; i <= buttonCount; i++) {
+	buttons[i].addEventListener("click", function () {
+		let userChosenColour = this.id;
+		userClickedPattern.push(userChosenColour);
+		playSound(userChosenColour);
+		animatePress(userChosenColour);
+		checkAnswer(userClickedPattern.length - 1);
+	});
 }
 
-//random colour is produced
-let randomChosenColour = buttonColours[nextSequence()];
+function checkAnswer(currentLevel) {
+	if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
+		if (userClickedPattern.length === gamePattern.length) {
+			setTimeout(function () {
+				nextSequence();
+			}, 1000);
+		}
+	} else {
+		playSound("wrong");
+		document.querySelector("body").classList.add("game-over");
+		document.getElementById("level-title").innerHTML =
+			"Game Over, Press Any Key to Restart";
+		setTimeout(function () {
+			document.querySelector("body").classList.remove("game-over");
+		}, 100);
+		startOver();
+	}
+}
 
-//push random colour to gamePattern array
-gamePattern.push(randomChosenColour);
-
-//select button with same id as randomChosenColour, add flash animation, add sound
-function buttonAnimation() {
-	let buttonSelected = document.getElementById(randomChosenColour);
-	buttonSelected.classList.add("black-button");
+function nextSequence() {
+	userClickedPattern = [];
+	level++;
+	document.getElementById("level-title").innerHTML = "Level " + level;
+	let randomNumber = Math.floor(Math.random() * 4);
+	let randomChosenColour = buttonColours[randomNumber];
+	gamePattern.push(randomChosenColour);
+	document.getElementById(randomChosenColour).classList.add("black-button");
 	setTimeout(function () {
-		buttonSelected.classList.remove("black-button");
+		document
+			.getElementById(randomChosenColour)
+			.classList.remove("black-button");
 	}, 100);
-	let audio = new Audio("sounds/" + randomChosenColour + ".mp3");
+	playSound(randomChosenColour);
+}
+
+function playSound(name) {
+	let audio = new Audio("sounds/" + name + ".mp3");
 	audio.play();
+}
+
+function animatePress(currentColour) {
+	document.getElementById(currentColour).classList.add("pressed");
+	setTimeout(function () {
+		document.getElementById(currentColour).classList.remove("pressed");
+	}, 100);
+}
+
+function startOver() {
+	level = 0;
+	gamePattern = [];
+	started = false;
 }
